@@ -5,13 +5,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-void master() {
-
-}
-
-void slave() {
-
-}
+#include "master.h"
+#include "slave.h"
 
 int main(int argc, char** argv) {
     int rank, size;
