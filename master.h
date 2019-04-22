@@ -1,8 +1,10 @@
 #ifndef MASTER
 #define MASTER
 
-void master() {
+#include "myMatrix.h"
 
+void master() {
+    
 }
 
 #endif
