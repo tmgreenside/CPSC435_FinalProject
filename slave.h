@@ -2,6 +2,7 @@
 #define SLAVE
 
 #include "myMatrix.h"
+#include "def.h"
 
 extern int rank, size, n, k;
 
@@ -17,7 +18,7 @@ void slave() {
 
     // Get work, process
 
-    
+
 
     // end
 
