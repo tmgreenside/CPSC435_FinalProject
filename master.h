@@ -1,13 +1,8 @@
 #ifndef MASTER
 #define MASTER
 
-#define TAG_COMM 0
-#define TAG_STATUS 1
-
-#define SLAVE_IDLE 0
-#define SLAVE_WORK_COMPLETE 1
-
 #include "myMatrix.h"
+#include "def.h"
 
 extern int rank, size, n, k;
 extern int **sendBuffer, **compBuffer, statusBuffer;

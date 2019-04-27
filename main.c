@@ -6,11 +6,12 @@
 #include <sys/types.h>
 
 int rank, size, n, k;
-int **sendBuffer, **compBuffer;
+int **sendBuffer, **compBuffer, statusBuffer;
 
 #include "myMatrix.h"
 #include "master.h"
 #include "slave.h"
+#include "def.h"
 
 int main(int argc, char** argv) {
 	if (argc != 3) {
