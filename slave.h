@@ -60,8 +60,8 @@ void slave() {
         statusBuffer = SLAVE_WORK_COMPLETE;
 
         MPI_Isend(&statusBuffer, 1, MPI_INT, MASTER_RANK, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &request1);
-        MPI_Isend(&offset, 1, MPI_INT, MASTER_RANK, TAG_OFFSET, &request2);
-        MPI_Isend(&(matrixC[0][0]), r * n, MPI_INT, MASTER_RANK, TAG_MATRIX, &request3);
+        MPI_Isend(&offset, 1, MPI_INT, MASTER_RANK, TAG_OFFSET, MPI_COMM_WORLD, &request2);
+        MPI_Isend(&(matrixC[0][0]), r * n, MPI_INT, MASTER_RANK, TAG_MATRIX, MPI_COMM_WORLD, &request3);
 
         MPI_Wait(&request1, MPI_STATUS_IGNORE);
         MPI_Wait(&request2, MPI_STATUS_IGNORE);
