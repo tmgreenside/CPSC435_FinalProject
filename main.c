@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-int rank, size, n, k;
+int rank, size, n, r;
 
 #include "myMatrix.h"
 #include "master.h"
@@ -14,14 +14,14 @@ int rank, size, n, k;
 
 int main(int argc, char** argv) {
 	if (argc != 3) {
-        printf("usage: %s <n> <k>\n", argv[0]);
+        printf("usage: %s <n> <r>\n", argv[0]);
         printf("  n: matrix size\n");
-        printf("  k: rows per task\n");
+        printf("  r: rows per task\n");
         return 1;
     }
     
     n = atoi(argv[1]);
-    k = atoi(argv[2]);
+    r = atoi(argv[2]);
     
     sendBuffer = createEmptyMatrix(n);
     compBuffer = createEmptyMatrix(n);
