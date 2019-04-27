@@ -23,8 +23,8 @@ void slave() {
 
     // Send 'SLAVE_IDLE' status (only at beginning, before loop)
     statusBuffer = SLAVE_IDLE;
-    MPI_ISend(&statusBuffer, 1, MPI_INT, MASTER_RANK, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &request2);
-    
+    MPI_Isend(&statusBuffer, 1, MPI_INT, MASTER_RANK, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &request2);
+
     MPI_Wait(&request1, MPI_STATUS_IGNORE);
     MPI_Wait(&request2, MPI_STATUS_IGNORE);
 
@@ -40,8 +40,8 @@ void slave() {
             break;
         }
 
-        MPI_IRecv(&offset, 1, MPI_INT, MASTER_RANK, TAG_OFFSET, MPI_COMM_WORLD, &request1);
-        MPI_IRecv(&(matrixA[0][0]), r * n, MPI_INT, MASTER_RANK, TAG_MATRIX, MPI_COMM_WORLD, &request2);
+        MPI_Irecv(&offset, 1, MPI_INT, MASTER_RANK, TAG_OFFSET, MPI_COMM_WORLD, &request1);
+        MPI_Irecv(&(matrixA[0][0]), r * n, MPI_INT, MASTER_RANK, TAG_MATRIX, MPI_COMM_WORLD, &request2);
         MPI_Wait(&request1, MPI_STATUS_IGNORE);
         MPI_Wait(&request2, MPI_STATUS_IGNORE);
 
@@ -55,14 +55,14 @@ void slave() {
                     matrixC[i][k] += matrixA[i][j] * matrixB[j][k];
             }
         }
-        
+
         // ------ Work complete, send back
         statusBuffer = SLAVE_WORK_COMPLETE;
-        
-        MPI_ISend(&statusBuffer, 1, MPI_INT, MASTER_RANK, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &request1);
-        MPI_ISend(&offset, 1, MPI_INT, MASTER_RANK, TAG_OFFSET, &request2);
-        MPI_ISend(&(matrixC[0][0]), r * n, MPI_INT, MASTER_RANK, TAG_MATRIX, &request3);
-        
+
+        MPI_Isend(&statusBuffer, 1, MPI_INT, MASTER_RANK, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &request1);
+        MPI_Isend(&offset, 1, MPI_INT, MASTER_RANK, TAG_OFFSET, &request2);
+        MPI_Isend(&(matrixC[0][0]), r * n, MPI_INT, MASTER_RANK, TAG_MATRIX, &request3);
+
         MPI_Wait(&request1, MPI_STATUS_IGNORE);
         MPI_Wait(&request2, MPI_STATUS_IGNORE);
         MPI_Wait(&request3, MPI_STATUS_IGNORE);
