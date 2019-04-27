@@ -5,7 +5,6 @@
 #include "def.h"
 
 extern int rank, size, n, k;
-extern int **sendBuffer, **compBuffer, statusBuffer;
 
 long getMicroTime(void)
 {
@@ -17,7 +16,7 @@ long getMicroTime(void)
 void master() {
     // --------------------------------------------------------------------------------
     // Initialization
-    int i, a_offset, flag, comp_offset;
+    int i, a_offset, flag, comp_offset, statusBuffer;
     long time_start, time_finish;
 
     int **matrixA, **matrixB, **matrixC;
@@ -44,14 +43,14 @@ void master() {
     {
         flag = 0;
 
-        // probing for 'TAG_STATUS' messages from slaves
+        // probing for 'TAG_SLAVE_STATUS' messages from slaves
         while (!flag)
         {
             for (i = 0; i < 100000; i++); // waiting time, don't poll too often
-            MPI_Iprobe(MPI_ANY_SOURCE, TAG_STATUS, MPI_COMM_WORLD, &flag, &status);
+            MPI_Iprobe(MPI_ANY_SOURCE, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &flag, &status);
         }
 
-        MPI_Recv(&statusBuffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_STATUS, MPI_COMM_WORLD, &status);
+        MPI_Recv(&statusBuffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &status);
 
         switch (statusBuffer) {
             case SLAVE_WORK_COMPLETE:
@@ -61,12 +60,17 @@ void master() {
             case SLAVE_IDLE:
                 // If idle, send work (if work remains)
                 if (a_offset < n) {
+                    // Send 'MASTER_ACK' status
+                    statusBuffer = MASTER_ACK;
+                    MPI_Send(&statusBuffer, 1, MPI_INT, status.MPI_SOURCE, TAG_MASTER_STATUS, MPI_COMM_WORLD);
+                    
                     MPI_Send(&a_offset, 1, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
                     MPI_Send(&(A[a_offset][0]), k * n, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
                     a_offset += k;
                 } else {
-                    statusBuffer = SLAVE_KILL;
-                    MPI_Send(&statusBuffer, 1, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
+                    // Send 'MASTER_KILL' status
+                    statusBuffer = MASTER_KILL;
+                    MPI_Send(&statusBuffer, 1, MPI_INT, status.MPI_SOURCE, TAG_MASTER_STATUS, MPI_COMM_WORLD);
                 }
                 break;
         }
