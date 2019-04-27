@@ -6,5 +6,6 @@
 
 #define SLAVE_IDLE 0
 #define SLAVE_WORK_COMPLETE 1
+#define SLAVE_KILL 2
 
 #endif

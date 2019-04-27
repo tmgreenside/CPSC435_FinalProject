@@ -64,10 +64,14 @@ void master() {
                     MPI_Send(&a_offset, 1, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
                     MPI_Send(&(A[a_offset][0]), k * n, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
                     a_offset += k;
+                } else {
+                    statusBuffer = SLAVE_KILL;
+                    MPI_Send(&statusBuffer, 1, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
                 }
                 break;
         }
     }
+    
 
     // --------------------------------------------------------------------------------
     // Finish
