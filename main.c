@@ -6,7 +6,7 @@
 #include <sys/types.h>
 
 int rank, size, n, k;
-int **sendBuffer, **compBuffer, statusBuffer;
+int **sendBuffer, **compBuffer;
 
 #include "myMatrix.h"
 #include "master.h"

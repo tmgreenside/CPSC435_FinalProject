@@ -1,15 +1,16 @@
 #ifndef MASTER
 #define MASTER
 
-#include "myMatrix.h"
+#define TAG_COMM 0
+#define TAG_STATUS 1
 
-#define COMM_TAG 0
-#define STATUS_TAG 1
+#define SLAVE_IDLE 0
+#define SLAVE_WORK_COMPLETE 1
+
+#include "myMatrix.h"
 
 extern int rank, size, n, k;
 extern int **sendBuffer, **compBuffer, statusBuffer;
-
-int **matrixA, **matrixB, **matrixC;
 
 long getMicroTime(void)
 {
@@ -21,50 +22,66 @@ long getMicroTime(void)
 void master() {
     // --------------------------------------------------------------------------------
     // Initialization
-    int i;
+    int i, a_offset, flag, comp_offset;
     long time_start, time_finish;
 
+    int **matrixA, **matrixB, **matrixC;
     matrixA = createMatrix(n);
     matrixB = createMatrix(n);
     matrixC = createEmptyMatrix(n);
 
     time_start = getMicroTime();
+    a_offset = 0;
 
     // --------------------------------------------------------------------------------
     // Process
 
-    int flag = 0;
-    MPI_Status status = NULL;
-    MPI_Request reqs[size];
+    MPI_Status status;
+    MPI_Request request = MPI_REQUEST_NULL;
 
-    for (i = 0; i < size; i++)
-        reqs[i] = NULL;
+    for (i = 1; i < size; i++)
+    {
+        // Send matrixB to all slaves
+        MPI_Send(&(B[0][0]), n * n, MPI_INT, i, TAG_COMM, MPI_COMM_WORLD);
+    }
 
-    for (i = 1; i < size; i++) {
-        if (reqs[i] != NULL) {
-            MPI_Test(&reqs[i], &flag, &status);
-            if (flag) {
-                reqs = NULL;
-            } else {
-                continue;
-            }
+    while (a_offset < n)
+    {
+        flag = 0;
+
+        // probing for 'TAG_STATUS' messages from slaves
+        while (!flag)
+        {
+            for (i = 0; i < 100000; i++); // waiting time, don't poll too often
+            MPI_Iprobe(MPI_ANY_SOURCE, TAG_STATUS, MPI_COMM_WORLD, &flag, &status);
         }
 
-        if (status) {
-            if (status.MPI_TAG == COMM_TAG) {
-            } else if (status.MPI_TAG == STATUS_TAG) {
-            }
-        }
+        MPI_Recv(&statusBuffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_STATUS, MPI_COMM_WORLD, &status);
 
-        if (status == NULL) {
-            MPI_Irecv(&statusBuffer, 1, MPI_INT, i, STATUS_TAG, MPI_COMM_WORLD, &reqs[i]);
+        switch (statusBuffer) {
+            case SLAVE_WORK_COMPLETE:
+                MPI_Recv(&comp_offset, 1, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                MPI_Recv(&(matrixC[comp_offset][0]), k * n, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                // no-break (fall-through)
+            case SLAVE_IDLE:
+                // If idle, send work (if work remains)
+                if (a_offset < n) {
+                    MPI_Send(&a_offset, 1, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
+                    MPI_Send(&(A[a_offset][0]), k * n, MPI_INT, status.MPI_SOURCE, TAG_COMM, MPI_COMM_WORLD);
+                    a_offset += k;
+                }
+                break;
         }
     }
 
     // --------------------------------------------------------------------------------
     // Finish
     time_finish = getMicroTime();
-    printf("Time elapsed where n = %d (s): %f\n", n, (double) (time_finish - time_start) / 1000000.0);
+    printf("Time elapsed where n = %d, k = %d (s): %f\n", n, k, (double) (time_finish - time_start) / 1000000.0);
+
+    if (n <= 16) {
+        printMatrix(matrixC, n);
+    }
 
     freeMatrix(matrixA, n);
     freeMatrix(matrixB, n);
