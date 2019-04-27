@@ -23,7 +23,7 @@ void master() {
     // Initialization
     int i;
     long time_start, time_finish;
-    
+
     matrixA = createMatrix(n);
     matrixB = createMatrix(n);
     matrixC = createEmptyMatrix(n);
@@ -32,14 +32,14 @@ void master() {
 
     // --------------------------------------------------------------------------------
     // Process
-    
+
     int flag = 0;
     MPI_Status status = NULL;
     MPI_Request reqs[size];
-    
+
     for (i = 0; i < size; i++)
         reqs[i] = NULL;
-    
+
     for (i = 1; i < size; i++) {
         if (reqs[i] != NULL) {
             MPI_Test(&reqs[i], &flag, &status);
@@ -49,18 +49,18 @@ void master() {
                 continue;
             }
         }
-        
+
         if (status) {
             if (status.MPI_TAG == COMM_TAG) {
             } else if (status.MPI_TAG == STATUS_TAG) {
             }
         }
-        
+
         if (status == NULL) {
             MPI_Irecv(&statusBuffer, 1, MPI_INT, i, STATUS_TAG, MPI_COMM_WORLD, &reqs[i]);
         }
     }
-    
+
     // --------------------------------------------------------------------------------
     // Finish
     time_finish = getMicroTime();
