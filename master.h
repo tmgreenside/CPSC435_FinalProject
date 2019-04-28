@@ -52,7 +52,7 @@ void master() {
         }
 
         MPI_Recv(&statusBuffer, 1, MPI_INT, MPI_ANY_SOURCE, TAG_SLAVE_STATUS, MPI_COMM_WORLD, &status);
-
+        printf("Still working this far. %d slaves alive\n", slaves_alive);
         switch (statusBuffer) {
             case SLAVE_WORK_COMPLETE:
                 MPI_Recv(&comp_offset, 1, MPI_INT, status.MPI_SOURCE, TAG_OFFSET, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -64,7 +64,7 @@ void master() {
                     // Send 'MASTER_ACK' status
                     statusBuffer = MASTER_ACK;
                     MPI_Send(&statusBuffer, 1, MPI_INT, status.MPI_SOURCE, TAG_MASTER_STATUS, MPI_COMM_WORLD);
-                    
+
                     MPI_Send(&a_offset, 1, MPI_INT, status.MPI_SOURCE, TAG_OFFSET, MPI_COMM_WORLD);
                     MPI_Send(&(matrixA[a_offset][0]), r * n, MPI_INT, status.MPI_SOURCE, TAG_MATRIX, MPI_COMM_WORLD);
                     a_offset += r;
@@ -77,7 +77,7 @@ void master() {
                 break;
         }
     }
-    
+
 
     // --------------------------------------------------------------------------------
     // Finish
